@@ -823,6 +823,20 @@ def tdroid_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
     trajectory["observation"]["gripper_state"] = trajectory["observation"]["gripper_position"][:, -1:]
     return trajectory
 
+def libero_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
+    # libero: -1 = open, 1 = close +1 = open, 0 = close
+    gripper_action = trajectory["action"][:, -1]
+    gripper_action = invert_gripper_actions(tf.clip_by_value(gripper_action, 0, 1))
+
+    trajectory["action"] = tf.concat(
+        (
+            trajectory["action"][:, :-1],
+            tf.expand_dims(gripper_action, axis=-1),
+        ),
+        axis=-1,
+    )
+    return trajectory
+
 
 # === Registry ===
 OXE_STANDARDIZATION_TRANSFORMS = {
@@ -897,4 +911,6 @@ OXE_STANDARDIZATION_TRANSFORMS = {
     "tdroid_cover_object_with_towel": tdroid_dataset_transform,
     ### DROID Finetuning datasets
     "droid_wipe": droid_finetuning_transform,
+    ### LIBERO datasets
+    "libero_spatial": libero_dataset_transform,
 }

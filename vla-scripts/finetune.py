@@ -17,9 +17,12 @@ Run with:
                                     --dataset_name <DATASET_NAME> \
                                     --run_root_dir <PATH/TO/LOGS/DIR> \
                                     ...
+                                    
+    torchrun --standalone --nnodes 1 --nproc-per-node 5 vla-scripts/finetune.py --data_root_dir /data2/zhaoyu/LIBERO_rlds/libero_spatial/1.0.0/ --dataset_name libero_spatial --run_root_dir /data2/zhaoyu/LIBERO_finetune/logs/libero_spatial --adapter_tmp_dir /data2/zhaoyu/LIBERO_finetune/checkpoints/libero_spatial
 """
 
 import os
+os.environ['TRANSFORMERS_CACHE'] = '/data2/zhaoyu/huggingface_cache'
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
@@ -95,7 +98,7 @@ class FinetuneConfig:
 
     # Tracking Parameters
     wandb_project: str = "openvla"                                  # Name of W&B project to log to (use default!)
-    wandb_entity: str = "stanford-voltron"                          # Name of entity to log under
+    wandb_entity: str = "object814-national-university-of-singapore-org"                          # Name of entity to log under
 
     # fmt: on
 

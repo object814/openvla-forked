@@ -195,6 +195,7 @@ def get_dataset_statistics(
     transitions and trajectories in the dataset.
     """
     unique_hash = hashlib.sha256("".join(hash_dependencies).encode("utf-8"), usedforsecurity=False).hexdigest()
+    # unique_hash = hashlib.sha256("".join(hash_dependencies).encode("utf-8")).hexdigest() # Python 3.8 tf 2.13
 
     # Fallback local path for when data_dir is not writable or not provided
     local_path = os.path.expanduser(os.path.join("~", ".cache", "orca", f"dataset_statistics_{unique_hash}.json"))
