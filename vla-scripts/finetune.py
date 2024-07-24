@@ -18,7 +18,11 @@ Run with:
                                     --run_root_dir <PATH/TO/LOGS/DIR> \
                                     ...
                                     
-    torchrun --standalone --nnodes 1 --nproc-per-node 5 vla-scripts/finetune.py --data_root_dir /data2/zhaoyu/LIBERO_rlds/libero_spatial/1.0.0/ --dataset_name libero_spatial --run_root_dir /data2/zhaoyu/LIBERO_finetune/logs/libero_spatial --adapter_tmp_dir /data2/zhaoyu/LIBERO_finetune/checkpoints/libero_spatial
+    torchrun --standalone --nnodes 1 --nproc-per-node 5 vla-scripts/finetune.py \
+        --data_root_dir /data2/zhaoyu/LIBERO_rlds/ \
+        --dataset_name libero_spatial \
+        --run_root_dir /data2/zhaoyu/LIBERO_finetune/logs/libero_spatial \
+        --adapter_tmp_dir /data2/zhaoyu/LIBERO_finetune/checkpoints/libero_spatial
 """
 
 import os
@@ -49,6 +53,8 @@ from prismatic.vla.datasets.rlds.utils.data_utils import save_dataset_statistics
 # Sane Defaults
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+# For NUS LinSLab server
+torch.set_num_threads(6)
 
 # # === Utilities ===
 # # fmt: off
@@ -81,13 +87,13 @@ class FinetuneConfig:
     adapter_tmp_dir: Path = Path("adapter-tmp")                     # Temporary directory for LoRA weights before fusing
 
     # Fine-tuning Parameters
-    batch_size: int = 16                                            # Fine-tuning batch size
-    max_steps: int = 200_000                                        # Max number of fine-tuning steps
-    save_steps: int = 5000                                          # Interval for checkpoint saving
+    batch_size: int = 2                                             # Fine-tuning batch size
+    max_steps: int = 10_000                                         # Max number of fine-tuning steps
+    save_steps: int = 250                                           # Interval for checkpoint saving
     learning_rate: float = 2e-5                                     # Fine-tuning learning rate
-    grad_accumulation_steps: int = 1                                # Gradient accumulation steps
+    grad_accumulation_steps: int = 10                               # Gradient accumulation steps
     image_aug: bool = True                                          # Whether to train with image augmentations
-    shuffle_buffer_size: int = 100_000                              # Dataloader shuffle buffer size (can reduce if OOM)
+    shuffle_buffer_size: int = 10_000                               # Dataloader shuffle buffer size (can reduce if OOM)
 
     # LoRA Arguments
     use_lora: bool = True                                           # Whether to use LoRA fine-tuning
@@ -98,7 +104,7 @@ class FinetuneConfig:
 
     # Tracking Parameters
     wandb_project: str = "openvla"                                  # Name of W&B project to log to (use default!)
-    wandb_entity: str = "object814-national-university-of-singapore-org"                          # Name of entity to log under
+    wandb_entity: str = "object814-national-university-of-singapore"                          # Name of entity to log under
 
     # fmt: on
 
