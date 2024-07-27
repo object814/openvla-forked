@@ -17,8 +17,8 @@ Run with:
                                     --dataset_name <DATASET_NAME> \
                                     --run_root_dir <PATH/TO/LOGS/DIR> \
                                     ...
-                                    
-    torchrun --standalone --nnodes 1 --nproc-per-node 5 vla-scripts/finetune.py \
+        
+    CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nnodes 1 --nproc-per-node 4 vla-scripts/finetune.py \
         --data_root_dir /data2/zhaoyu/LIBERO_rlds/ \
         --dataset_name libero_spatial \
         --run_root_dir /data2/zhaoyu/LIBERO_finetune/logs/libero_spatial \
