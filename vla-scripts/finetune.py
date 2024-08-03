@@ -88,12 +88,12 @@ class FinetuneConfig:
 
     # Fine-tuning Parameters
     batch_size: int = 2                                             # Fine-tuning batch size
-    max_steps: int = 10_000                                         # Max number of fine-tuning steps
-    save_steps: int = 250                                           # Interval for checkpoint saving
+    max_steps: int = 20_000                                         # Max number of fine-tuning steps
+    save_steps: int = 5000                                          # Interval for checkpoint saving
     learning_rate: float = 2e-5                                     # Fine-tuning learning rate
-    grad_accumulation_steps: int = 10                               # Gradient accumulation steps
-    image_aug: bool = True                                          # Whether to train with image augmentations
-    shuffle_buffer_size: int = 10_000                               # Dataloader shuffle buffer size (can reduce if OOM)
+    grad_accumulation_steps: int = 1                                # Gradient accumulation steps
+    image_aug: bool = False                                          # Whether to train with image augmentations
+    shuffle_buffer_size: int = 1_000                               # Dataloader shuffle buffer size (can reduce if OOM)
 
     # LoRA Arguments
     use_lora: bool = True                                           # Whether to use LoRA fine-tuning
