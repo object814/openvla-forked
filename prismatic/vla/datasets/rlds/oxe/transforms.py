@@ -824,9 +824,11 @@ def tdroid_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
     return trajectory
 
 def libero_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
-    # libero: -1 = open, 1 = close +1 = open, 0 = close
+    # libero: -1 = open, 1 = close
+    # we convert it to +1 = open, 0 = close
     gripper_action = trajectory["action"][:, -1]
-    gripper_action = invert_gripper_actions(tf.clip_by_value(gripper_action, 0, 1))
+    # gripper_action = tf.clip_by_value(gripper_action, 0, 1)
+    # gripper_action = invert_gripper_actions(gripper_action)
 
     trajectory["action"] = tf.concat(
         (
@@ -913,5 +915,6 @@ OXE_STANDARDIZATION_TRANSFORMS = {
     "droid_wipe": droid_finetuning_transform,
     ### LIBERO datasets
     "libero_spatial": libero_dataset_transform,
-    "libero_spatial_sub": libero_dataset_transform,
+    "libero_spatial_single": libero_dataset_transform,
+    "libero_spatial_0": libero_dataset_transform,
 }
