@@ -88,12 +88,12 @@ class FinetuneConfig:
 
     # Fine-tuning Parameters
     batch_size: int = 2                                             # Fine-tuning batch size
-    max_steps: int = 20_000                                         # Max number of fine-tuning steps
-    save_steps: int = 5000                                          # Interval for checkpoint saving
+    max_steps: int = 100000                                            # Max number of fine-tuning steps
+    save_steps: int = 100000                                           # Interval for checkpoint saving
     learning_rate: float = 2e-5                                     # Fine-tuning learning rate
     grad_accumulation_steps: int = 1                                # Gradient accumulation steps
-    image_aug: bool = False                                          # Whether to train with image augmentations
-    shuffle_buffer_size: int = 1_000                               # Dataloader shuffle buffer size (can reduce if OOM)
+    image_aug: bool = False                                         # Whether to train with image augmentations
+    shuffle_buffer_size: int = 1_000                                # Dataloader shuffle buffer size (can reduce if OOM)
 
     # LoRA Arguments
     use_lora: bool = True                                           # Whether to use LoRA fine-tuning
@@ -225,6 +225,8 @@ def finetune(cfg: FinetuneConfig) -> None:
         collate_fn=collator,
         num_workers=0,  # Important =>> Set to 0 if using RLDS; TFDS rolls its own parallelism!
     )
+    print(len(dataloader))
+    input("PAUSE")
 
     # Initialize Logging =>> W&B
     if distributed_state.is_main_process:
@@ -235,10 +237,14 @@ def finetune(cfg: FinetuneConfig) -> None:
     recent_action_accuracies = deque(maxlen=cfg.grad_accumulation_steps)
     recent_l1_losses = deque(maxlen=cfg.grad_accumulation_steps)
 
+    # Initialize step counter
+    step_counter = 0
+
     # Train!
-    with tqdm.tqdm(total=cfg.max_steps, leave=False) as progress:
+    with tqdm.tqdm(total=cfg.max_steps, leave=True) as progress:
         vla.train()
         optimizer.zero_grad()
+        print("entering for loop")
         for batch_idx, batch in enumerate(dataloader):
             with torch.autocast("cuda", dtype=torch.bfloat16):
                 output: CausalLMOutputWithPast = vla(
@@ -281,10 +287,9 @@ def finetune(cfg: FinetuneConfig) -> None:
 
             # Compute gradient step index
             gradient_step_idx = batch_idx // cfg.grad_accumulation_steps
+            print("Current gradient step index: ", gradient_step_idx)
 
             # Compute smoothened train metrics
-            #   =>> Equal to current step metrics when not using gradient accumulation
-            #   =>> Otherwise, equal to the average of metrics observed over micro-batches used for gradient accumulation
             smoothened_loss = sum(recent_losses) / len(recent_losses)
             smoothened_action_accuracy = sum(recent_action_accuracies) / len(recent_action_accuracies)
             smoothened_l1_loss = sum(recent_l1_losses) / len(recent_l1_losses)
@@ -299,7 +304,8 @@ def finetune(cfg: FinetuneConfig) -> None:
             if (batch_idx + 1) % cfg.grad_accumulation_steps == 0:
                 optimizer.step()
                 optimizer.zero_grad()
-                progress.update()
+                progress.update(cfg.grad_accumulation_steps)
+                step_counter += cfg.grad_accumulation_steps
 
             # Save Model Checkpoint =>> by default, only keeps the latest checkpoint, continually overwriting it!
             if gradient_step_idx > 0 and gradient_step_idx % cfg.save_steps == 0:
@@ -329,6 +335,10 @@ def finetune(cfg: FinetuneConfig) -> None:
 
                 # Block on Main Process Checkpointing
                 dist.barrier()
+                
+                # Exit
+                if step_counter >= cfg.max_steps:
+                    break
 
 
 if __name__ == "__main__":

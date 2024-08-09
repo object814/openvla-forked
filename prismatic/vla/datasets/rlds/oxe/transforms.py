@@ -915,6 +915,10 @@ OXE_STANDARDIZATION_TRANSFORMS = {
     "droid_wipe": droid_finetuning_transform,
     ### LIBERO datasets
     "libero_spatial": libero_dataset_transform,
-    "libero_spatial_single": libero_dataset_transform,
-    "libero_spatial_0": libero_dataset_transform,
+    "libero_spatial_sub": libero_dataset_transform,
 }
+
+# Add 10 datasets for LIBERO spatial finetuning
+for i in range(10):
+    dataset_name = f"libero_spatial_{i}"
+    OXE_STANDARDIZATION_TRANSFORMS[dataset_name] = libero_dataset_transform
